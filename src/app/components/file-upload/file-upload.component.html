@@ -1,0 +1,318 @@
+<div class="file-upload-container">
+  <div class="upload-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()" title="Go Back to Previous Page">
+        <span class="back-icon">←</span>
+        <span class="back-text">Back</span>
+      </button>
+      <h3>{{ isEditMode ? 'Edit Use Case' : 'Add Functionality' }}</h3>
+    </div>
+  </div>
+  
+  <div class="upload-section">
+    <div class="upload-form">
+      <!-- Edit Mode Notice -->
+      <div class="edit-mode-notice" *ngIf="isEditMode">
+        <div class="notice-content">
+          <span class="notice-icon">ℹ️</span>
+          <span class="notice-text">Edit Mode: You can modify the name, description, and configuration settings. Current files are shown below. To change JMX/CSV files, upload new ones or create a new use case.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="useCaseName">Use Case Name:</label>
+        <input 
+          type="text" 
+          id="useCaseName" 
+          [(ngModel)]="useCaseName" 
+          placeholder="Enter use case name"
+          class="form-control">
+      </div>
+      
+      <div class="form-group">
+        <label for="useCaseDescription">Description:</label>
+        <textarea 
+          id="useCaseDescription" 
+          [(ngModel)]="useCaseDescription" 
+          placeholder="Enter description (optional)"
+          class="form-control"
+          rows="2">
+        </textarea>
+      </div>
+
+      <div class="file-uploads">
+        <div class="file-upload-group">
+          <label for="jmxFile" class="file-label">Upload JMX (.jmx):</label>
+          <div class="file-input-container">
+            <input 
+              type="file" 
+              id="jmxFile" 
+              accept=".jmx"
+              (change)="onJmxFileSelected($event)"
+              class="file-input">
+            <button 
+              type="button" 
+              *ngIf="jmxFile" 
+              (click)="removeJmxFile()"
+              class="remove-file-btn"
+              title="Remove JMX file">
+              ×
+            </button>
+          </div>
+          <span class="file-name" *ngIf="jmxFile">{{ jmxFile.name }}</span>
+          <!-- Show existing file in edit mode -->
+          <div class="existing-file" *ngIf="isEditMode && existingJmxFileName && !jmxFile">
+            <div class="existing-file-info">
+              <span class="existing-file-icon">📄</span>
+              <span class="existing-file-name">{{ existingJmxFileName }}</span>
+              <span class="existing-file-label">(Current JMX file)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="file-upload-group">
+          <label for="csvFile" class="file-label">Upload CSV (.csv):</label>
+          <div class="file-input-container">
+            <input 
+              type="file" 
+              id="csvFile" 
+              accept=".csv"
+              (change)="onCsvFileSelected($event)"
+              class="file-input">
+            <button 
+              type="button" 
+              *ngIf="csvFile" 
+              (click)="removeCsvFile()"
+              class="remove-file-btn"
+              title="Remove CSV file">
+              ×
+            </button>
+          </div>
+          <span class="file-name" *ngIf="csvFile">{{ csvFile.name }}</span>
+          
+          <!-- Show existing file in edit mode -->
+          <div class="existing-file" *ngIf="isEditMode && existingCsvFileName && !csvFile">
+            <div class="existing-file-info">
+              <span class="existing-file-icon">📊</span>
+              <span class="existing-file-name">{{ existingCsvFileName }}</span>
+              <span class="existing-file-label">(Current CSV file)</span>
+            </div>
+          </div>
+          
+          <!-- User Count Display -->
+          <div class="user-count-display" *ngIf="csvUserCount > 0">
+            <div class="user-count-info">
+              <span class="user-count-icon">👥</span>
+              <span class="user-count-text">{{ csvUserCount }} user{{ csvUserCount === 1 ? '' : 's' }} found in CSV</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread Group Configuration Section -->
+      <div class="thread-group-config" *ngIf="jmxFile || (isEditMode && existingJmxFileName)">
+        <h4>Thread Group Configuration</h4>
+        <div class="config-grid">
+          <div class="config-group">
+            <label for="numberOfThreads">Number of Threads (Users):</label>
+            <input 
+              type="number" 
+              id="numberOfThreads" 
+              [(ngModel)]="threadGroupConfig.numberOfThreads" 
+              min="1" 
+              max="10000"
+              class="form-control">
+          </div>
+          
+          <div class="config-group">
+            <label for="rampUpPeriod">Ramp-up Period (seconds):</label>
+            <input 
+              type="number" 
+              id="rampUpPeriod" 
+              [(ngModel)]="threadGroupConfig.rampUpPeriod" 
+              min="0" 
+              class="form-control">
+          </div>
+          
+          <div class="config-group">
+            <label for="loopCount">Loop Count:</label>
+            <div class="loop-config">
+              <input 
+                type="checkbox" 
+                id="infiniteLoop" 
+                [(ngModel)]="threadGroupConfig.infiniteLoop"
+                (change)="onInfiniteLoopChange($event)"
+                class="checkbox">
+              <label for="infiniteLoop">Infinite</label>
+              <input 
+                type="number" 
+                id="loopCount" 
+                [(ngModel)]="threadGroupConfig.loopCount" 
+                min="1" 
+                [disabled]="threadGroupConfig.infiniteLoop"
+                class="form-control">
+            </div>
+          </div>
+          
+          <div class="config-group" *ngIf="threadGroupConfig.specifyThreadLifetime">
+            <label for="duration">Duration (seconds):</label>
+            <input 
+              type="number" 
+              id="duration" 
+              [(ngModel)]="threadGroupConfig.duration" 
+              min="1" 
+              class="form-control">
+          </div>
+          
+          <div class="config-group" *ngIf="threadGroupConfig.specifyThreadLifetime">
+            <label for="startupDelay">Startup delay (seconds):</label>
+            <input 
+              type="number" 
+              id="startupDelay" 
+              [(ngModel)]="threadGroupConfig.startupDelay" 
+              min="0" 
+              class="form-control">
+          </div>
+        </div>
+        
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input 
+              type="checkbox" 
+              id="sameUserOnEachIteration" 
+              [(ngModel)]="threadGroupConfig.sameUserOnEachIteration"
+              class="checkbox">
+            <label for="sameUserOnEachIteration">Same user on each iteration</label>
+          </div>
+          
+          <div class="checkbox-item">
+            <input 
+              type="checkbox" 
+              id="delayThreadCreation" 
+              [(ngModel)]="threadGroupConfig.delayThreadCreation"
+              class="checkbox">
+            <label for="delayThreadCreation">Delay Thread creation until needed</label>
+          </div>
+          
+          <div class="checkbox-item">
+            <input 
+              type="checkbox" 
+              id="specifyThreadLifetime" 
+              [(ngModel)]="threadGroupConfig.specifyThreadLifetime"
+              class="checkbox">
+            <label for="specifyThreadLifetime">Specify Thread lifetime</label>
+          </div>
+        </div>
+        
+        <div class="action-after-error">
+          <label for="actionAfterSamplerError">Action to be taken after a Sampler error:</label>
+          <select 
+            id="actionAfterSamplerError" 
+            [(ngModel)]="threadGroupConfig.actionAfterSamplerError"
+            class="form-control">
+            <option value="Continue">Continue</option>
+            <option value="Start Next Thread Loop">Start Next Thread Loop</option>
+            <option value="Stop Thread">Stop Thread</option>
+            <option value="Stop Test">Stop Test</option>
+            <option value="Stop Test Now">Stop Test Now</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Server Configuration Section -->
+      <div class="server-config" *ngIf="jmxFile || (isEditMode && existingJmxFileName)">
+        <h4>Server Configuration</h4>
+        
+        <!-- Preset Configuration Options -->
+        <div class="preset-configs">
+          <h5>Quick Select Preset Configurations:</h5>
+          <div class="preset-buttons">
+            <button 
+              type="button" 
+              class="preset-btn" 
+              (click)="applyPresetConfig(presetConfigs[0])"
+              [class.active]="serverConfig.server === presetConfigs[0].server">
+              {{ presetConfigs[0].name }}
+            </button>
+            <button 
+              type="button" 
+              class="preset-btn" 
+              (click)="applyPresetConfig(presetConfigs[1])"
+              [class.active]="serverConfig.server === presetConfigs[1].server">
+              {{ presetConfigs[1].name }}
+            </button>
+          </div>
+        </div>
+        
+        <div class="config-grid">
+          <div class="config-group">
+            <label for="protocol">Protocol:</label>
+            <select 
+              id="protocol" 
+              [(ngModel)]="serverConfig.protocol"
+              class="form-control">
+              <option value="http">HTTP</option>
+              <option value="https">HTTPS</option>
+            </select>
+          </div>
+          
+          <div class="config-group">
+            <label for="server">Server Name or IP:</label>
+            <input 
+              type="text" 
+              id="server" 
+              [(ngModel)]="serverConfig.server" 
+              placeholder="e.g., localhost, 192.168.1.100, api.example.com"
+              class="form-control">
+          </div>
+          
+          <div class="config-group">
+            <label for="port">Port Number:</label>
+            <input 
+              type="text" 
+              id="port" 
+              [(ngModel)]="serverConfig.port" 
+              placeholder="e.g., 8080, 3000, 443"
+              class="form-control">
+          </div>
+        </div>
+        
+        <div class="config-preview">
+          <h5>Configuration Preview</h5>
+          <div class="preview-url">
+            <span class="url-label">Base URL:</span>
+            <span class="url-value">{{ serverConfig.protocol }}://{{ serverConfig.server }}:{{ serverConfig.port }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button 
+        type="button" 
+        (click)="onSubmit()" 
+        [disabled]="isUploading"
+        class="submit-btn">
+        {{ isUploading ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Use Case' : 'Create Use Case') }}
+      </button>
+
+      <div class="upload-message" *ngIf="uploadMessage" [class.success]="uploadMessage.includes('successfully')" [class.error]="uploadMessage.includes('Error')">
+        {{ uploadMessage }}
+      </div>
+
+      <!-- Debug Information (only show when JMX file is selected) -->
+      <div class="debug-info" *ngIf="jmxFile">
+        <h4>Thread Group Configuration Preview:</h4>
+        <div class="config-preview">
+          <p><strong>Number of Threads:</strong> {{ threadGroupConfig.numberOfThreads }}</p>
+          <p><strong>Ramp-up Period:</strong> {{ threadGroupConfig.rampUpPeriod }} seconds</p>
+          <p><strong>Loop Count:</strong> {{ threadGroupConfig.infiniteLoop ? 'Infinite' : threadGroupConfig.loopCount }}</p>
+          <p><strong>Same User on Each Iteration:</strong> {{ threadGroupConfig.sameUserOnEachIteration ? 'Yes' : 'No' }}</p>
+          <p><strong>Delay Thread Creation:</strong> {{ threadGroupConfig.delayThreadCreation ? 'Yes' : 'No' }}</p>
+          <p><strong>Specify Thread Lifetime:</strong> {{ threadGroupConfig.specifyThreadLifetime ? 'Yes' : 'No' }}</p>
+          <p *ngIf="threadGroupConfig.specifyThreadLifetime"><strong>Duration:</strong> {{ threadGroupConfig.duration }} seconds</p>
+          <p *ngIf="threadGroupConfig.specifyThreadLifetime"><strong>Startup Delay:</strong> {{ threadGroupConfig.startupDelay }} seconds</p>
+          <p><strong>Action After Sampler Error:</strong> {{ threadGroupConfig.actionAfterSamplerError }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

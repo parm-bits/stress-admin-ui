@@ -1,0 +1,44 @@
+<div class="status-monitor" *ngIf="useCase">
+  <div class="status-section">
+    <h4>Status</h4>
+    <div class="status-display">
+      <span class="status-icon">{{ getStatusIcon() }}</span>
+      <span class="status-text">{{ getStatusText() }}</span>
+    </div>
+    
+    <div class="status-details">
+      <div class="status-item" *ngIf="lastRunAt">
+        <strong>Last Run:</strong> {{ lastRunAt | date:'medium' }}
+      </div>
+      
+      <div class="status-item" *ngIf="reportUrl">
+        <strong>Report URL:</strong>
+        <a [href]="reportUrl" target="_blank" class="report-link">
+          {{ reportUrl }}
+        </a>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button 
+        *ngIf="!isRunning" 
+        (click)="runTest()" 
+        class="run-btn"
+        [disabled]="status === 'RUNNING'">
+        Run Test
+      </button>
+      
+      <button 
+        *ngIf="isRunning" 
+        (click)="stopTest()" 
+        class="stop-btn">
+        ⏹️ Stop Test
+      </button>
+      
+      <div class="success-indicator" *ngIf="isSuccess">
+        <span class="checkmark">✓</span>
+        <span>Success</span>
+      </div>
+    </div>
+  </div>
+</div>

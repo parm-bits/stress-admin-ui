@@ -1,0 +1,62 @@
+<div class="app-container">
+  <!-- Authentication Pages (Login/Register) -->
+  <div *ngIf="isAuthPage" class="auth-pages">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Main Application Pages -->
+  <div *ngIf="!isAuthPage" class="main-app">
+    <!-- Sidebar Component - Shows on all pages -->
+    <app-sidebar></app-sidebar>
+
+    <!-- Header - Only show on non-home pages -->
+    <header class="app-header" *ngIf="!isHomePage">
+      <div class="header-content">
+        <div class="header-left">
+          <button class="home-btn" routerLink="/home">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Home
+          </button>
+          <h1>{{ title }}</h1>
+        </div>
+        <div class="header-right">
+          <nav class="nav-menu">
+            <a routerLink="/upload" routerLinkActive="active" class="nav-link">
+              📁 Upload
+            </a>
+            <a routerLink="/usecases" routerLinkActive="active" class="nav-link">
+              📋 Use Cases
+            </a>
+            <a routerLink="/summary" routerLinkActive="active" class="nav-link">
+              📊 Summary Report
+            </a>
+          </nav>
+          <div class="user-menu">
+            <span class="user-info" *ngIf="currentUser">
+              👤 {{ currentUser.username }}
+            </span>
+            <button class="logout-btn" (click)="logout()">
+              🚪 Logout
+            </button>
+            <button class="settings-btn" (click)="toggleSettings()">
+              ⚙️ Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Settings Section -->
+      <section class="settings-section" *ngIf="showSettings">
+        <app-settings></app-settings>
+      </section>
+
+      <!-- Router Outlet -->
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

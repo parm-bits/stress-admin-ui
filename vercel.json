@@ -1,0 +1,7 @@
+{
+  "buildCommand": "ng build --configuration production",
+  "outputDirectory": "dist/stress-admin-fd2",
+  "framework": "angular",
+  "installCommand": "npm install",
+  "devCommand": "ng serve"
+}

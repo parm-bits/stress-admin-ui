@@ -1,0 +1,40 @@
+<div class="settings-container">
+  <div class="settings-section">
+    <h3>Settings</h3>
+    <div class="settings-form">
+      <div class="form-group">
+        <label for="jmeterPath">JMeter Path:</label>
+        <div class="path-input-group">
+          <input 
+            type="text" 
+            id="jmeterPath" 
+            [(ngModel)]="jmeterPath" 
+            placeholder="Enter path to jmeter.sh"
+            class="path-input">
+          <button 
+            type="button" 
+            (click)="onBrowse()" 
+            class="browse-btn"
+            title="Browse for JMeter script">
+            📁 Browse
+          </button>
+        </div>
+        <div class="path-help">
+          <small>Example: /opt/jmeter/bin/jmeter.sh</small>
+        </div>
+      </div>
+
+      <button 
+        type="button" 
+        (click)="onSave()" 
+        [disabled]="isLoading"
+        class="save-btn">
+        {{ isLoading ? 'Saving...' : 'Save Settings' }}
+      </button>
+
+      <div class="message" *ngIf="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+        {{ message }}
+      </div>
+    </div>
+  </div>
+</div>

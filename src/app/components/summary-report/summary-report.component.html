@@ -1,0 +1,230 @@
+<div class="summary-report-container">
+  <div class="summary-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()" title="Go Back to Previous Page">
+        <span class="back-icon">←</span>
+        <span class="back-text">Back</span>
+      </button>
+      <h2 class="summary-title">
+        <span class="title-icon">📊</span>
+        Summary Report
+      </h2>
+    </div>
+    <div class="live-indicator" [class.active]="selectedTest && selectedTest.status === 'RUNNING'">
+      <span class="live-dot"></span>
+      <span class="live-text">{{ selectedTest && selectedTest.status === 'RUNNING' ? 'LIVE UPDATES' : 'STATIC' }}</span>
+    </div>
+  </div>
+
+  <!-- Test List -->
+  <div class="test-list-container" *ngIf="useCases.length > 0">
+    <div class="test-list-header">
+      <h3>Available Tests</h3>
+      <div class="test-count">{{ useCases.length }} test{{ useCases.length !== 1 ? 's' : '' }}</div>
+    </div>
+    
+    <div class="test-list">
+      <div class="test-item" 
+           *ngFor="let useCase of paginatedTests" 
+           [class.selected]="selectedTestId === useCase.id"
+           [class.running]="useCase.status === 'RUNNING'"
+           [class.success]="useCase.status === 'SUCCESS'"
+           [class.failed]="useCase.status === 'FAILED'"
+           [class.idle]="useCase.status === 'IDLE'"
+           (click)="selectTest(useCase.id)">
+        
+        <div class="test-info">
+          <div class="test-name">{{ useCase.name }}</div>
+          <div class="test-status" [class]="useCase.status.toLowerCase()">
+            <span class="status-icon">{{ getStatusIcon(useCase.status) }}</span>
+            <span class="status-text">{{ useCase.status }}</span>
+          </div>
+        </div>
+        
+        <div class="test-actions">
+          <button class="action-btn run-btn" 
+                  *ngIf="useCase.status === 'IDLE'"
+                  (click)="runTest(useCase.id, $event)" 
+                  title="Run Test">
+            ▶️ Run
+          </button>
+          <button class="action-btn stop-btn" 
+                  *ngIf="useCase.status === 'RUNNING'"
+                  (click)="stopTest(useCase.id, $event)" 
+                  title="Stop Test">
+            ⏹️ Stop
+          </button>
+          <button class="action-btn view-btn" 
+                  *ngIf="useCase.status !== 'RUNNING'"
+                  (click)="selectTest(useCase.id, $event)" 
+                  title="View Report">
+            📊 View
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, useCases.length) }} of {{ useCases.length }} tests
+      </div>
+      
+      <div class="pagination-controls">
+        <button class="pagination-btn" 
+                [disabled]="currentPage === 1"
+                (click)="goToPage(currentPage - 1)"
+                title="Previous Page">
+          ← Previous
+        </button>
+        
+        <div class="page-numbers">
+          <button class="page-btn" 
+                  *ngFor="let page of visiblePages" 
+                  [class.active]="page === currentPage"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" 
+                [disabled]="currentPage === totalPages"
+                (click)="goToPage(currentPage + 1)"
+                title="Next Page">
+          Next →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Report Table -->
+  <div class="report-container" *ngIf="selectedTest">
+    <div class="report-header">
+      <div class="report-info">
+        <h3>{{ selectedTest.name }}</h3>
+        <div class="test-status">
+          <span class="status-icon">{{ getStatusIcon(selectedTest.status) }}</span>
+          <span class="status-text" [style.color]="getStatusColor(selectedTest.status)">
+            {{ selectedTest.status }}
+          </span>
+        </div>
+        
+        <div class="test-duration" *ngIf="selectedTest.status === 'RUNNING' || selectedTest.testDurationSeconds">
+          <div class="clock-container">
+            <div class="clock-face" [class.running]="selectedTest.status === 'RUNNING'" [class.completed]="selectedTest.status !== 'RUNNING'">
+              <div class="clock-hand" [class.running]="selectedTest.status === 'RUNNING'" [class.completed]="selectedTest.status !== 'RUNNING'"></div>
+            </div>
+            <div class="timer-text">
+              <span class="timer-label">{{ selectedTest.status === 'RUNNING' ? 'RUNNING' : 'COMPLETED' }}</span>
+              <span class="timer-value">
+                <span *ngIf="selectedTest.status === 'RUNNING'">{{ getRunningDuration(selectedTest) }}</span>
+                <span *ngIf="selectedTest.status !== 'RUNNING' && selectedTest.testDurationSeconds">{{ formatDuration(selectedTest.testDurationSeconds) }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="loading-spinner"></div>
+      <p>Loading summary report data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-container" *ngIf="errorMessage && !isLoading">
+      <div class="error-icon">⚠️</div>
+      <p>{{ errorMessage }}</p>
+      <div class="error-actions">
+        <button class="retry-btn" (click)="loadSummaryReportData()">Retry</button>
+        <button class="test-connection-btn" (click)="testBackendConnection()">Test Connection</button>
+      </div>
+    </div>
+
+    <!-- No Report Available Message -->
+    <div class="no-report-container" *ngIf="!isLoading && !errorMessage && selectedTest && !shouldShowSummaryReport(selectedTest)">
+      <div class="no-report-content">
+        <span class="no-report-icon">📊</span>
+        <h3>No Report Available</h3>
+        <p>This test has never been run or doesn't have a report yet.</p>
+        <p>Run the test to generate a summary report.</p>
+      </div>
+    </div>
+
+    <!-- Summary Report Table -->
+    <div class="report-table-container" *ngIf="!isLoading && !errorMessage && selectedTest && shouldShowSummaryReport(selectedTest)">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th rowspan="2" class="sortable">Label ↕</th>
+            <th colspan="2" class="section-header">Requests</th>
+            <th colspan="2" class="section-header">Executions</th>
+            <th colspan="6" class="section-header">Response Times (ms)</th>
+            <th colspan="1" class="section-header">Throughput</th>
+            <th colspan="2" class="section-header">Network (KB/sec)</th>
+          </tr>
+          <tr>
+            <th class="sortable">#Samples ↕</th>
+            <th class="sortable">#Errors ↕</th>
+            <th class="sortable">FAIL ↕</th>
+            <th class="sortable">Error % ↕</th>
+            <th class="sortable">Average ↕</th>
+            <th class="sortable">Min ↕</th>
+            <th class="sortable">Max ↕</th>
+            <th class="sortable">Median ↕</th>
+            <th class="sortable">90th pct ↕</th>
+            <th class="sortable">95th pct ↕</th>
+            <th class="sortable">99th pct ↕</th>
+            <th class="sortable">Transactions/s ↕</th>
+            <th class="sortable">Received ↕</th>
+            <th class="sortable">Sent ↕</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sample of sampleData" 
+              [class.error-row]="sample.errorPercent > 0"
+              [class.total-row]="sample.isTotal">
+            <td class="label-cell">{{ sample.label }}</td>
+            <td class="number-cell">{{ formatNumber(sample.samples) }}</td>
+            <td class="number-cell">{{ formatNumber(sample.errors) }}</td>
+            <td class="number-cell">{{ formatNumber(sample.failures) }}</td>
+            <td class="error-cell" [class.has-error]="sample.errorPercent > 0">
+              {{ sample.errorPercent }}%
+            </td>
+            <td class="number-cell">{{ sample.average }}</td>
+            <td class="number-cell">{{ sample.min }}</td>
+            <td class="number-cell">{{ sample.max }}</td>
+            <td class="number-cell">{{ sample.median }}</td>
+            <td class="number-cell">{{ sample.pct90 }}</td>
+            <td class="number-cell">{{ sample.pct95 }}</td>
+            <td class="number-cell">{{ sample.pct99 }}</td>
+            <td class="number-cell">{{ sample.transactionsPerSec }}</td>
+            <td class="number-cell">{{ sample.receivedKBps }}</td>
+            <td class="number-cell">{{ sample.sentKBps }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- No Test Selected Message -->
+  <div class="no-test-selected" *ngIf="!selectedTest && useCases.length > 0">
+    <div class="no-test-content">
+      <span class="no-test-icon">📊</span>
+      <h3>No Test Selected</h3>
+      <p>Select a test from the dropdown above to view its summary report</p>
+    </div>
+  </div>
+
+  <!-- No Tests Available Message -->
+  <div class="no-tests" *ngIf="useCases.length === 0">
+    <div class="no-tests-content">
+      <span class="no-tests-icon">📊</span>
+      <h3>No Tests Available</h3>
+      <p>Create and run a test to see summary reports here</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,196 @@
+<div class="usecase-table-container">
+  <div class="table-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()" title="Go Back to Previous Page">
+        <span class="back-icon">←</span>
+        <span class="back-text">Back</span>
+      </button>
+      <h3>Use Cases</h3>
+    </div>
+    <button (click)="loadUseCases()" class="refresh-btn" [disabled]="loading">
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div class="error-message" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <div class="table-wrapper" *ngIf="!loading && !error">
+    <table class="usecase-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Last Run</th>
+          <th>Duration</th>
+          <th>Report</th>
+          <th>Download</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let useCase of getPaginatedUseCases()" [class]="getStatusClass(useCase.status)">
+          <td class="name-cell">
+            <strong>{{ useCase.name }}</strong>
+            <div class="use-case-id">ID: {{ useCase.id }}</div>
+          </td>
+          <td class="description-cell">
+            {{ useCase.description || 'No description' }}
+          </td>
+          <td class="status-cell">
+            <div class="status-display">
+              <span class="status-icon">{{ getStatusIcon(useCase.status) }}</span>
+              <span class="status-text">{{ getStatusText(useCase.status) }}</span>
+            </div>
+          </td>
+          <td class="date-cell">
+            {{ formatDate(useCase.lastRunAt) }}
+          </td>
+          <td class="duration-cell">
+            <div class="duration-display">
+              <div *ngIf="useCase.status === 'RUNNING'" class="running-duration">
+                <div class="clock-container">
+                  <div class="clock-face">
+                    <div class="clock-hand"></div>
+                  </div>
+                  <div class="timer-text">
+                    <span class="timer-label">RUNNING</span>
+                    <span class="timer-value">{{ getRunningDuration(useCase) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="useCase.status !== 'RUNNING' && useCase.testDurationSeconds" class="completed-duration">
+                <div class="clock-container">
+                  <div class="clock-face completed">
+                    <div class="clock-hand completed"></div>
+                  </div>
+                  <div class="timer-text">
+                    <span class="timer-label">COMPLETED</span>
+                    <span class="timer-value">{{ formatDuration(useCase.testDurationSeconds) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="useCase.status !== 'RUNNING' && !useCase.testDurationSeconds" class="no-duration">
+                <div class="clock-container">
+                  <div class="clock-face idle">
+                    <div class="clock-hand idle"></div>
+                  </div>
+                  <div class="timer-text">
+                    <span class="timer-label">NO DATA</span>
+                    <span class="timer-value">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="report-cell">
+            <button 
+              *ngIf="useCase.lastReportUrl" 
+              (click)="openReport(useCase.lastReportUrl!)"
+              class="report-btn"
+              title="Open HTML Report">
+              📊 View Report
+            </button>
+            <span *ngIf="!useCase.lastReportUrl" class="no-report">No report</span>
+          </td>
+          <td class="download-cell">
+            <div class="download-buttons">
+              <button 
+                (click)="downloadJmx(useCase)"
+                class="download-btn jmx-btn"
+                title="Download JMX file">
+                📄 JMX
+              </button>
+              <button 
+                *ngIf="useCase.csvPath && useCase.csvPath.trim() !== ''"
+                (click)="downloadCsv(useCase)"
+                class="download-btn csv-btn"
+                title="Download CSV file">
+                📊 CSV
+              </button>
+            </div>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button 
+                *ngIf="useCase.status !== 'RUNNING'"
+                (click)="runTest(useCase)"
+                class="run-btn"
+                title="Run Test">
+                Run Test
+              </button>
+              <button 
+                *ngIf="useCase.status === 'RUNNING'"
+                (click)="stopTest(useCase)"
+                class="stop-btn"
+                title="Stop Test">
+                ⏹️ Stop Test
+              </button>
+              <div class="compact-actions">
+                <button 
+                  (click)="editUseCase(useCase)"
+                  class="edit-btn"
+                  title="Edit Use Case">
+                  ✏️
+                </button>
+                <button 
+                  (click)="deleteUseCase(useCase)"
+                  [disabled]="useCase.status === 'RUNNING'"
+                  class="delete-btn"
+                  title="Delete Use Case">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="useCases.length === 0">
+      <p>No use cases found. Create your first use case using the upload form above.</p>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container" *ngIf="useCases.length > 0 && totalPages > 1">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ getEndIndex() }} of {{ useCases.length }} use cases
+      </div>
+      
+      <div class="pagination-controls">
+        <button 
+          (click)="previousPage()" 
+          [disabled]="currentPage === 1"
+          class="pagination-btn prev-btn"
+          title="Previous Page">
+          ← Previous
+        </button>
+        
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getPageNumbers()"
+            (click)="goToPage(page)"
+            [class.active]="page === currentPage"
+            class="pagination-btn page-btn">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button 
+          (click)="nextPage()" 
+          [disabled]="currentPage === totalPages"
+          class="pagination-btn next-btn"
+          title="Next Page">
+          Next →
+        </button>
+    </div>
+  </div>
+</div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading use cases...</p>
+  </div>
+</div>

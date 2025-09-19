@@ -1,0 +1,133 @@
+.status-monitor {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 20px 0;
+}
+
+.status-section h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.status-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.status-icon {
+  font-size: 1.5em;
+  animation: spin 2s linear infinite;
+}
+
+.status-icon:not(.spinning) {
+  animation: none;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status-text {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.status-details {
+  margin-bottom: 15px;
+}
+
+.status-item {
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.status-item strong {
+  color: #555;
+}
+
+.report-link {
+  color: #007bff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.report-link:hover {
+  text-decoration: underline;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.run-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.run-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.run-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.stop-btn {
+  background: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.stop-btn:hover {
+  background: #e0a800;
+}
+
+.success-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.checkmark {
+  font-size: 1.2em;
+}
+
+/* Status-specific styling */
+.status-monitor.running .status-icon {
+  animation: spin 2s linear infinite;
+}
+
+.status-monitor.success {
+  border-left: 4px solid #28a745;
+}
+
+.status-monitor.failed {
+  border-left: 4px solid #dc3545;
+}
+
+.status-monitor.idle {
+  border-left: 4px solid #6c757d;
+}

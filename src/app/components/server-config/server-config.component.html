@@ -1,0 +1,93 @@
+<div class="server-config-overlay" *ngIf="isVisible" (click)="cancelConfig()">
+  <div class="server-config-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">Server Configuration</h3>
+      <button class="close-btn" (click)="cancelConfig()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="config-info">
+        <p class="info-text">
+          Configure server details for <strong>{{ useCaseName }}</strong>
+        </p>
+        <p class="info-description">
+          These settings will be applied to all HTTP requests in your JMeter test case.
+        </p>
+      </div>
+
+      <div class="config-form">
+        <div class="form-group">
+          <label class="form-label">Protocol</label>
+          <select 
+            class="form-select" 
+            [(ngModel)]="serverConfig.protocol"
+            [disabled]="isLoading">
+            <option value="http">HTTP</option>
+            <option value="https">HTTPS</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Server Name or IP</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="serverConfig.server"
+            placeholder="e.g., localhost, 192.168.1.100, api.example.com"
+            [disabled]="isLoading">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Port Number</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="serverConfig.port"
+            placeholder="e.g., 8080, 3000, 443"
+            [disabled]="isLoading">
+        </div>
+
+        <div class="config-preview">
+          <h4 class="preview-title">Configuration Preview</h4>
+          <div class="preview-url">
+            <span class="url-label">Base URL:</span>
+            <span class="url-value">{{ serverConfig.protocol }}://{{ serverConfig.server }}:{{ serverConfig.port }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button 
+        class="btn btn-secondary" 
+        (click)="resetToDefaults()"
+        [disabled]="isLoading">
+        Reset to Defaults
+      </button>
+      <div class="footer-actions">
+        <button 
+          class="btn btn-outline" 
+          (click)="cancelConfig()"
+          [disabled]="isLoading">
+          Cancel
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="saveConfig()"
+          [disabled]="!validateConfig() || isLoading">
+          <span *ngIf="!isLoading">Save Configuration</span>
+          <span *ngIf="isLoading" class="loading-spinner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Saving...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
