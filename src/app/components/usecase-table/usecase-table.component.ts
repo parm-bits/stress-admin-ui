@@ -178,11 +178,6 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
         fullUrl = `${baseUrl}/${reportUrl}`;
       }
       
-      console.log('Report URL Debug:');
-      console.log('Original reportUrl:', reportUrl);
-      console.log('Environment API URL:', environment.apiUrl);
-      console.log('Final URL:', fullUrl);
-      
       window.open(fullUrl, '_blank');
     }
   }

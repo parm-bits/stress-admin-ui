@@ -41,20 +41,12 @@
             <button class="logout-btn" (click)="logout()">
               🚪 Logout
             </button>
-            <button class="settings-btn" (click)="toggleSettings()">
-              ⚙️ Settings
-            </button>
           </div>
         </div>
       </div>
     </header>
 
     <main class="main-content">
-      <!-- Settings Section -->
-      <section class="settings-section" *ngIf="showSettings">
-        <app-settings></app-settings>
-      </section>
-
       <!-- Router Outlet -->
       <router-outlet></router-outlet>
     </main>

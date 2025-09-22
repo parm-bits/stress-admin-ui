@@ -10,7 +10,6 @@ import { AuthService, User } from './services/auth.service';
 })
 export class AppComponent implements OnInit {
   title = 'Stress Admin Dashboard';
-  showSettings: boolean = false;
   isHomePage: boolean = false;
   isAuthPage: boolean = false;
   currentUser: User | null = null;
@@ -39,9 +38,6 @@ export class AppComponent implements OnInit {
     });
   }
 
-  toggleSettings(): void {
-    this.showSettings = !this.showSettings;
-  }
 
   logout(): void {
     // Clear token immediately before making the API call

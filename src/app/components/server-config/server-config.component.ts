@@ -19,8 +19,8 @@ export class ServerConfigComponent implements OnInit {
 
   serverConfig: ServerConfig = {
     protocol: 'http',
-    server: 'localhost',
-    port: '8080'
+    server: '3.137.176.31',
+    port: '8082'
   };
 
   isVisible: boolean = false;
@@ -70,7 +70,7 @@ export class ServerConfigComponent implements OnInit {
   resetToDefaults(): void {
     this.serverConfig = {
       protocol: 'http',
-      server: 'localhost',
+      server: '3.137.176.31',
       port: '8080'
     };
   }

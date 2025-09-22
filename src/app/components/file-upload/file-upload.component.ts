@@ -41,8 +41,8 @@ export class FileUploadComponent implements OnInit {
   // Server Configuration
   serverConfig = {
     protocol: 'http',
-    server: 'localhost',
-    port: '8080'
+    server: '3.137.176.31',
+    port: '8082'
   };
 
   // Preset Server Configurations
@@ -403,7 +403,7 @@ export class FileUploadComponent implements OnInit {
   resetServerConfig(): void {
     this.serverConfig = {
       protocol: 'http',
-      server: 'localhost',
+      server: '3.137.176.31',
       port: '8080'
     };
   }
