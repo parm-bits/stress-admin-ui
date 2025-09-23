@@ -44,8 +44,37 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
     
+    // Store current testStartedAt for running tests before refreshing
+    const runningTestTimestamps: { [key: string]: string } = {};
+    this.useCases.forEach(useCase => {
+      if (useCase.status === 'RUNNING' && useCase.testStartedAt) {
+        runningTestTimestamps[useCase.id] = useCase.testStartedAt;
+      }
+    });
+    
     this.useCaseService.getAllUseCases().subscribe({
       next: (useCases) => {
+        // Restore testStartedAt for running tests that were started in this session
+        useCases.forEach(useCase => {
+          if (useCase.status === 'RUNNING' && runningTestTimestamps[useCase.id]) {
+            useCase.testStartedAt = runningTestTimestamps[useCase.id];
+          }
+        });
+        
+        // Handle tests that were running but are now completed
+        this.useCases.forEach(oldUseCase => {
+          if (oldUseCase.status === 'RUNNING') {
+            const newUseCase = useCases.find(uc => uc.id === oldUseCase.id);
+            if (newUseCase && newUseCase.status !== 'RUNNING' && runningTestTimestamps[oldUseCase.id]) {
+              // Test was completed, calculate final duration
+              const startTime = new Date(runningTestTimestamps[oldUseCase.id]);
+              const endTime = new Date();
+              newUseCase.testDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+              newUseCase.testCompletedAt = endTime.toISOString();
+            }
+          }
+        });
+        
         // Sort use cases: newest created first, then by most recent run
         this.useCases = useCases.sort((a, b) => {
           // First priority: Sort by creation time (newest first) using MongoDB ObjectId
