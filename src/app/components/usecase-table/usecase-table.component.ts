@@ -112,8 +112,74 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
   startAutoRefresh(): void {
     // Refresh every 5 seconds to get updated statuses
     this.refreshInterval = setInterval(() => {
-      this.loadUseCases();
+      this.refreshUseCases();
     }, 5000);
+  }
+
+  refreshUseCases(): void {
+    // Store current testStartedAt for running tests before refreshing
+    const runningTestTimestamps: { [key: string]: string } = {};
+    this.useCases.forEach(useCase => {
+      if (useCase.status === 'RUNNING' && useCase.testStartedAt) {
+        runningTestTimestamps[useCase.id] = useCase.testStartedAt;
+      }
+    });
+    
+    this.useCaseService.getAllUseCases().subscribe({
+      next: (useCases) => {
+        // Restore testStartedAt for running tests that were started in this session
+        useCases.forEach(useCase => {
+          if (useCase.status === 'RUNNING' && runningTestTimestamps[useCase.id]) {
+            useCase.testStartedAt = runningTestTimestamps[useCase.id];
+          }
+        });
+        
+        // Handle tests that were running but are now completed
+        this.useCases.forEach(oldUseCase => {
+          if (oldUseCase.status === 'RUNNING') {
+            const newUseCase = useCases.find(uc => uc.id === oldUseCase.id);
+            if (newUseCase && newUseCase.status !== 'RUNNING' && runningTestTimestamps[oldUseCase.id]) {
+              // Test was completed, calculate final duration
+              const startTime = new Date(runningTestTimestamps[oldUseCase.id]);
+              const endTime = new Date();
+              newUseCase.testDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+              newUseCase.testCompletedAt = endTime.toISOString();
+            }
+          }
+        });
+        
+        // Sort use cases: newest created first, then by most recent run
+        this.useCases = useCases.sort((a, b) => {
+          // First priority: Sort by creation time (newest first) using MongoDB ObjectId
+          // MongoDB ObjectIds are sortable and contain timestamp
+          const aCreatedTime = this.extractTimestampFromObjectId(a.id);
+          const bCreatedTime = this.extractTimestampFromObjectId(b.id);
+          
+          if (aCreatedTime !== bCreatedTime) {
+            return bCreatedTime - aCreatedTime; // Newest first
+          }
+          
+          // Second priority: If created at same time, sort by most recent run
+          if (a.lastRunAt && b.lastRunAt) {
+            return new Date(b.lastRunAt).getTime() - new Date(a.lastRunAt).getTime();
+          }
+          
+          // If only one has lastRunAt, prioritize it
+          if (a.lastRunAt && !b.lastRunAt) return -1;
+          if (!a.lastRunAt && b.lastRunAt) return 1;
+          
+          // Fallback: sort by ID (newest first)
+          return b.id.localeCompare(a.id);
+        });
+        
+        // Don't set loading = false here since this is a background refresh
+        this.error = '';
+      },
+      error: (error) => {
+        // Don't show error for background refresh, just log it
+        console.error('Error refreshing use cases:', error);
+      }
+    });
   }
 
   runTest(useCase: UseCase): void {
