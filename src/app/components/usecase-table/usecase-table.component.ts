@@ -95,6 +95,8 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
       next: (response) => {
         // Update the use case status immediately
         useCase.status = 'RUNNING';
+        // Set the test start time to current time
+        useCase.testStartedAt = new Date().toISOString();
         
         // Show success toast notification
         this.toastService.showTestStarted(useCase.name);
@@ -119,6 +121,14 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
         next: (response) => {
           console.log('Test stopped:', response);
           useCase.status = 'STOPPED';
+          // Set completion time
+          useCase.testCompletedAt = new Date().toISOString();
+          // Calculate duration if test was running
+          if (useCase.testStartedAt) {
+            const startTime = new Date(useCase.testStartedAt);
+            const endTime = new Date(useCase.testCompletedAt);
+            useCase.testDurationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+          }
           this.loadUseCases(); // Refresh the list
         },
         error: (error) => {
@@ -358,7 +368,18 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
 
     const startTime = new Date(useCase.testStartedAt);
     const now = new Date();
+    
+    // Check if the start time is valid (not in the future)
+    if (startTime.getTime() > now.getTime()) {
+      return '0s';
+    }
+    
     const durationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+    
+    // If duration is negative or very large (more than 24 hours), return 0s
+    if (durationSeconds < 0 || durationSeconds > 86400) {
+      return '0s';
+    }
     
     return this.formatDuration(durationSeconds);
   }
