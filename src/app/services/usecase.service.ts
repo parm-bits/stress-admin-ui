@@ -21,7 +21,7 @@ export class UseCaseService {
     return this.http.get<UseCase>(`${this.apiUrl}/usecases/${id}`);
   }
 
-  createUseCase(name: string, description: string, jmxFile: File, csvFile: File | null, requiresCsv: boolean = false): Observable<UseCase> {
+  createUseCase(name: string, description: string, jmxFile: File, csvFile: File | null, requiresCsv: boolean = false, threadGroupConfig?: any, serverConfig?: any): Observable<UseCase> {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
@@ -30,6 +30,14 @@ export class UseCaseService {
       formData.append('csvFile', csvFile);
     }
     formData.append('requiresCsv', requiresCsv.toString());
+    
+    // Add configuration data for backend logging
+    if (threadGroupConfig) {
+      formData.append('threadGroupConfig', JSON.stringify(threadGroupConfig));
+    }
+    if (serverConfig) {
+      formData.append('serverConfig', JSON.stringify(serverConfig));
+    }
 
     return this.http.post<UseCase>(`${this.apiUrl}/usecases`, formData);
   }

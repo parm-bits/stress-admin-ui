@@ -342,7 +342,9 @@ export class FileUploadComponent implements OnInit {
         this.useCaseDescription,
         modifiedJmxFile,
         this.csvFile,
-        this.csvFile !== null
+        this.csvFile !== null,
+        this.threadGroupConfig,
+        this.serverConfig
       ).subscribe({
         next: (useCase) => {
           this.isUploading = false;
@@ -350,6 +352,33 @@ export class FileUploadComponent implements OnInit {
           
           // Show success toast notification
           this.toastService.showUseCaseCreated(this.useCaseName);
+          
+          // Log detailed success information for debugging
+          console.log('=== USE CASE CREATION SUCCESS ===');
+          console.log('Use Case ID:', useCase.id);
+          console.log('Use Case Name:', this.useCaseName);
+          console.log('Thread Group Config Applied:', {
+            numberOfThreads: this.threadGroupConfig.numberOfThreads,
+            rampUpPeriod: this.threadGroupConfig.rampUpPeriod,
+            loopCount: this.threadGroupConfig.loopCount,
+            infiniteLoop: this.threadGroupConfig.infiniteLoop,
+            sameUserOnEachIteration: this.threadGroupConfig.sameUserOnEachIteration,
+            delayThreadCreation: this.threadGroupConfig.delayThreadCreation,
+            specifyThreadLifetime: this.threadGroupConfig.specifyThreadLifetime,
+            duration: this.threadGroupConfig.duration,
+            startupDelay: this.threadGroupConfig.startupDelay,
+            actionAfterSamplerError: this.threadGroupConfig.actionAfterSamplerError
+          });
+          console.log('Server Config Applied:', {
+            protocol: this.serverConfig.protocol,
+            server: this.serverConfig.server,
+            port: this.serverConfig.port
+          });
+          console.log('Created Use Case Data:', useCase);
+          console.log('=== CREATION COMPLETE ===');
+          
+          // Verify the created use case data from backend
+          this.verifyCreatedUseCase(useCase.id);
           
           this.useCaseCreated.emit(useCase);
           this.resetForm();
@@ -493,11 +522,28 @@ export class FileUploadComponent implements OnInit {
       `<boolProp name="ThreadGroup.scheduler">${this.threadGroupConfig.specifyThreadLifetime}</boolProp>`
     );
     
-    // Update duration (longProp, not stringProp)
-    modifiedContent = modifiedContent.replace(
-      /<longProp name="ThreadGroup\.duration">\d+<\/longProp>/g,
-      `<longProp name="ThreadGroup.duration">${this.threadGroupConfig.duration}</longProp>`
-    );
+    // Update duration only if scheduler is enabled (thread lifetime is specified)
+    // First, ensure the property exists if thread lifetime is specified
+    if (this.threadGroupConfig.specifyThreadLifetime) {
+      // Check if duration property exists, if not add it
+      const durationPattern = /<longProp name="ThreadGroup\.duration">\d+<\/longProp>/g;
+      if (modifiedContent.match(durationPattern)) {
+        // Update existing duration property
+        modifiedContent = modifiedContent.replace(
+          durationPattern,
+          `<longProp name="ThreadGroup.duration">${this.threadGroupConfig.duration}</longProp>`
+        );
+      } else {
+        // Add duration property if it doesn't exist
+        propertiesToAdd.push(`    <longProp name="ThreadGroup.duration">${this.threadGroupConfig.duration}</longProp>`);
+      }
+    } else {
+      // If scheduler is disabled, remove or set duration to 0
+      modifiedContent = modifiedContent.replace(
+        /<longProp name="ThreadGroup\.duration">\d+<\/longProp>/g,
+        `<longProp name="ThreadGroup.duration">0</longProp>`
+      );
+    }
     
     // Update action after sampler error
     modifiedContent = modifiedContent.replace(
@@ -543,20 +589,51 @@ export class FileUploadComponent implements OnInit {
       );
     }
     
-    console.log('JMX modification completed');
+    console.log('=== JMX MODIFICATION COMPLETED ===');
     console.log('Final Thread Group Config Applied:', {
+      numberOfThreads: this.threadGroupConfig.numberOfThreads,
+      rampUpPeriod: this.threadGroupConfig.rampUpPeriod,
+      loopCount: this.threadGroupConfig.loopCount,
+      infiniteLoop: this.threadGroupConfig.infiniteLoop,
+      sameUserOnEachIteration: this.threadGroupConfig.sameUserOnEachIteration,
       delayThreadCreation: this.threadGroupConfig.delayThreadCreation,
-      startupDelay: this.threadGroupConfig.startupDelay,
       specifyThreadLifetime: this.threadGroupConfig.specifyThreadLifetime,
-      duration: this.threadGroupConfig.duration
+      duration: this.threadGroupConfig.duration,
+      startupDelay: this.threadGroupConfig.startupDelay,
+      actionAfterSamplerError: this.threadGroupConfig.actionAfterSamplerError
     });
     
-    // Log a snippet of the modified JMX to verify changes
-    const verificationDelayStartMatch = modifiedContent.match(/<boolProp name="ThreadGroup\.delayedStart">(true|false)<\/boolProp>/);
-    const verificationStartupDelayMatch = modifiedContent.match(/<stringProp name="ThreadGroup\.delay">\d+<\/stringProp>/);
+    // Enhanced verification logging for JMX properties
+    console.log('=== JMX PROPERTY VERIFICATION ===');
     
-    console.log('Verification - Delay Thread Creation found in JMX:', verificationDelayStartMatch ? verificationDelayStartMatch[1] : 'NOT FOUND');
-    console.log('Verification - Startup Delay found in JMX:', verificationStartupDelayMatch ? verificationStartupDelayMatch[0] : 'NOT FOUND');
+    // Thread Group properties verification
+    const numberOfThreadsMatch = modifiedContent.match(/<intProp name="ThreadGroup\.num_threads">(\d+)<\/intProp>/);
+    const rampTimeMatch = modifiedContent.match(/<intProp name="ThreadGroup\.ramp_time">(\d+)<\/intProp>/);
+    const schedulerMatch = modifiedContent.match(/<boolProp name="ThreadGroup\.scheduler">(true|false)<\/boolProp>/);
+    const sameUserMatch = modifiedContent.match(/<boolProp name="ThreadGroup\.same_user_on_next_iteration">(true|false)<\/boolProp>/);
+    const actionErrorMatch = modifiedContent.match(/<stringProp name="ThreadGroup\.on_sample_error">([^<]+)<\/stringProp>/);
+    
+    // Loop controller verification
+    const loopsMatch = modifiedContent.match(/<stringProp name="LoopController\.loops">(-?\d+)<\/stringProp>/);
+    const continueForeverMatch = modifiedContent.match(/<boolProp name="LoopController\.continue_forever">(true|false)<\/boolProp>/);
+    
+    // Duration and delay verification
+    const durationMatch = modifiedContent.match(/<longProp name="ThreadGroup\.duration">(\d+)<\/longProp>/);
+    const delayStartMatch = modifiedContent.match(/<boolProp name="ThreadGroup\.delayedStart">(true|false)<\/boolProp>/);
+    const startupDelayMatch = modifiedContent.match(/<stringProp name="ThreadGroup\.delay">(\d+)<\/stringProp>/);
+    
+    console.log('✓ Number of Threads:', numberOfThreadsMatch ? numberOfThreadsMatch[1] : 'NOT FOUND');
+    console.log('✓ Ramp-up Period:', rampTimeMatch ? rampTimeMatch[1] : 'NOT FOUND');
+    console.log('✓ Thread Lifetime (Scheduler):', schedulerMatch ? schedulerMatch[1] : 'NOT FOUND');
+    console.log('✓ Same User on Each Iteration:', sameUserMatch ? sameUserMatch[1] : 'NOT FOUND');
+    console.log('✓ Action After Sampler Error:', actionErrorMatch ? actionErrorMatch[1] : 'NOT FOUND');
+    console.log('✓ Loop Count:', loopsMatch ? loopsMatch[1] : 'NOT FOUND');
+    console.log('✓ Continue Forever:', continueForeverMatch ? continueForeverMatch[1] : 'NOT FOUND');
+    console.log('✓ Duration (seconds):', durationMatch ? durationMatch[1] : 'NOT FOUND');
+    console.log('✓ Delay Thread Creation:', delayStartMatch ? delayStartMatch[1] : 'NOT FOUND');
+    console.log('✓ Startup Delay:', startupDelayMatch ? startupDelayMatch[1] : 'NOT FOUND');
+    
+    console.log('=== VERIFICATION COMPLETE ===');
     
     // Validate JMX structure
     this.validateJmxStructure(modifiedContent);
@@ -889,6 +966,62 @@ export class FileUploadComponent implements OnInit {
     
     console.log('Final infiniteLoop value:', this.threadGroupConfig.infiniteLoop);
     console.log('=== FORCE SET COMPLETE ===');
+  }
+
+  // Method to verify the created use case data from backend
+  verifyCreatedUseCase(useCaseId: string): void {
+    console.log('=== VERIFYING CREATED USE CASE ===');
+    console.log('Fetching use case data for ID:', useCaseId);
+    
+    this.useCaseService.getUseCaseById(useCaseId).subscribe({
+      next: (useCaseData: any) => {
+        console.log('=== BACKEND USE CASE VERIFICATION ===');
+        console.log('Raw Backend Data:', useCaseData);
+        
+        // Check if threadGroupConfig was saved properly
+        if (useCaseData.threadGroupConfig) {
+          try {
+            const savedConfig = JSON.parse(useCaseData.threadGroupConfig);
+            console.log('✓ Backend Thread Group Config:', savedConfig);
+            console.log('✓ Specify Thread Lifetime in Backend:', savedConfig.specifyThreadLifetime);
+            console.log('✓ Duration in Backend:', savedConfig.duration);
+            
+            // Compare with frontend config
+            console.log('--- CONFIGURATION COMPARISON ---');
+            console.log('Frontend vs Backend - Specify Thread Lifetime:', 
+              this.threadGroupConfig.specifyThreadLifetime, '==', savedConfig.specifyThreadLifetime,
+              this.threadGroupConfig.specifyThreadLifetime === savedConfig.specifyThreadLifetime ? '✓' : '✗'
+            );
+            console.log('Frontend vs Backend - Duration:', 
+              this.threadGroupConfig.duration, '==', savedConfig.duration,
+              this.threadGroupConfig.duration === savedConfig.duration ? '✓' : '✗'
+            );
+            console.log('--- COMPARISON COMPLETE ---');
+          } catch (error) {
+            console.error('Error parsing threadGroupConfig from backend:', error);
+          }
+        } else {
+          console.warn('⚠️ No threadGroupConfig found in backend response');
+        }
+        
+        // Check if serverConfig was saved properly
+        if (useCaseData.serverConfig) {
+          try {
+            const savedServerConfig = JSON.parse(useCaseData.serverConfig);
+            console.log('✓ Backend Server Config:', savedServerConfig);
+          } catch (error) {
+            console.error('Error parsing serverConfig from backend:', error);
+          }
+        } else {
+          console.warn('⚠️ No serverConfig found in backend response');
+        }
+        
+        console.log('=== BACKEND VERIFICATION COMPLETE ===');
+      },
+      error: (error) => {
+        console.error('❌ Error fetching use case for verification:', error);
+      }
+    });
   }
 
 }
