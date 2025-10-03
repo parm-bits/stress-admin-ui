@@ -473,6 +473,9 @@ export class FileUploadComponent implements OnInit {
     // This is a simplified XML modification - in production, you'd want to use a proper XML parser
     let modifiedContent = jmxContent;
     
+    // Handle properties that might not exist in the original JMX
+    const propertiesToAdd: string[] = [];
+    
     console.log('Original Thread Group Config:', this.threadGroupConfig);
     
     // Update number of threads (intProp, not stringProp)
@@ -550,9 +553,6 @@ export class FileUploadComponent implements OnInit {
       /<stringProp name="ThreadGroup\.on_sample_error">[^<]+<\/stringProp>/g,
       `<stringProp name="ThreadGroup.on_sample_error">${this.threadGroupConfig.actionAfterSamplerError.toLowerCase()}</stringProp>`
     );
-    
-    // Handle properties that might not exist in the original JMX
-    const propertiesToAdd: string[] = [];
     
     // Check and add delay thread creation if needed
     const delayStartPattern = /<boolProp name="ThreadGroup\.delayedStart">(true|false)<\/boolProp>/g;
