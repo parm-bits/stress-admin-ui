@@ -814,17 +814,39 @@ export class SummaryReportComponent implements OnInit, OnDestroy {
 
   /**
    * Calculates running duration for currently running tests
+   * Handles UTC timestamps properly to avoid timezone issues
    */
   getRunningDuration(useCase: UseCase): string {
     if (useCase.status !== 'RUNNING' || !useCase.testStartedAt) {
       return '0s';
     }
 
-    const startTime = new Date(useCase.testStartedAt);
+    // Parse the timestamp as UTC to avoid timezone conversion issues
+    const startTime = this.parseUTCTimestamp(useCase.testStartedAt);
     const now = new Date();
+    
+    // Check if the start time is valid (not in the future)
+    if (startTime.getTime() > now.getTime()) {
+      return '0s';
+    }
+    
     const durationSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
     
+    // If duration is negative or very large (more than 24 hours), return 0s
+    if (durationSeconds < 0 || durationSeconds > 86400) {
+      return '0s';
+    }
+    
     return this.formatDuration(durationSeconds);
+  }
+
+  /**
+   * Parse UTC timestamp string to Date object, handling timezone properly
+   */
+  private parseUTCTimestamp(timestamp: string): Date {
+    // If timestamp doesn't end with 'Z', assume it's UTC and add 'Z'
+    const utcTimestamp = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+    return new Date(utcTimestamp);
   }
 
 }
