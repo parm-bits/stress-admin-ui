@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -9,7 +10,10 @@ import { Router, NavigationEnd } from '@angular/router';
 export class SidebarComponent implements OnInit {
   currentRoute: string = '';
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.router.events.subscribe((event: any) => {
@@ -35,8 +39,17 @@ export class SidebarComponent implements OnInit {
     this.router.navigate(['/home']);
   }
 
+  navigateToUsers(): void {
+    this.router.navigate(['/users']);
+  }
+
   isActive(route: string): boolean {
     return this.currentRoute === route || 
            (route === '/home' && (this.currentRoute === '/' || this.currentRoute === '/home'));
+  }
+
+  isAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user?.authorities?.some((auth: any) => auth.authority === 'ROLE_ADMIN') || false;
   }
 }

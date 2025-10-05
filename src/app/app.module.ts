@@ -14,8 +14,8 @@ import { UsecaseTableComponent } from './components/usecase-table/usecase-table.
 import { SettingsComponent } from './components/settings/settings.component';
 import { SummaryReportComponent } from './components/summary-report/summary-report.component';
 import { LoginComponent } from './components/login/login.component';
-import { RegisterComponent } from './components/register/register.component';
 import { LoginTestComponent } from './components/login-test/login-test.component';
+import { UserManagementComponent } from './components/user-management/user-management.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
@@ -30,8 +30,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     SettingsComponent,
     SummaryReportComponent,
     LoginComponent,
-    RegisterComponent,
-    LoginTestComponent
+    LoginTestComponent,
+    UserManagementComponent
   ],
   imports: [
     BrowserModule,

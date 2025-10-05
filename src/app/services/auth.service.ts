@@ -8,13 +8,6 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-  fullName: string;
-}
-
 export interface AuthResponse {
   success: boolean;
   token?: string;
@@ -61,11 +54,6 @@ export class AuthService {
       );
   }
 
-  register(userData: RegisterRequest): Observable<AuthResponse> {
-    console.log('Sending registration request:', userData);
-    console.log('API URL:', `${this.apiUrl}/register`);
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData);
-  }
 
   logout(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/logout`, {})
