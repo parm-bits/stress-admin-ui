@@ -84,6 +84,11 @@ export class SummaryReportComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadUseCases();
     this.startLiveUpdates();
+    
+    // Force refresh use cases when component loads to get latest data
+    setTimeout(() => {
+      this.loadUseCases();
+    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -207,6 +212,10 @@ export class SummaryReportComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
     this.selectedTestId = testId;
+    
+    // Refresh use cases to get latest timing data
+    this.loadUseCases();
+    
     this.updateSelectedTest();
     if (this.selectedTest) {
       // Load the specific test's data into view

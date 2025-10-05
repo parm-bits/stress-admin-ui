@@ -211,8 +211,8 @@
 }
 
 .clock-face {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   position: relative;
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
@@ -277,8 +277,8 @@
 }
 
 .clock-hand {
-  width: 2px;
-  height: 12px;
+  width: 1px;
+  height: 8px;
   background: linear-gradient(to top, #64748b, #475569);
   border-radius: 1px;
   position: relative;

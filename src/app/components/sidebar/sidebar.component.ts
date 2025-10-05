@@ -50,6 +50,10 @@ export class SidebarComponent implements OnInit {
 
   isAdmin(): boolean {
     const user = this.authService.getCurrentUser();
-    return user?.authorities?.some((auth: any) => auth.authority === 'ROLE_ADMIN') || false;
+    console.log('Current user:', user);
+    console.log('User authorities:', user?.authorities);
+    const isAdmin = user?.authorities?.some((auth: any) => auth.authority === 'ROLE_ADMIN') || false;
+    console.log('Is admin:', isAdmin);
+    return isAdmin;
   }
 }

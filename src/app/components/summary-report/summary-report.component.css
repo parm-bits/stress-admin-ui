@@ -607,8 +607,8 @@
 }
 
 .clock-face {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   position: relative;
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
@@ -668,8 +668,8 @@
 }
 
 .clock-hand {
-  width: 3px;
-  height: 18px;
+  width: 2px;
+  height: 14px;
   background: linear-gradient(to top, #64748b, #475569);
   border-radius: 2px;
   position: relative;
