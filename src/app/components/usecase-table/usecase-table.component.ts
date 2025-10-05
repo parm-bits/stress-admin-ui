@@ -44,7 +44,7 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
     
-    // Store current testStartedAt for running tests before refreshing
+    // Store current testStartedAt for running tests before refreshing (for completion calculation only)
     const runningTestTimestamps: { [key: string]: string } = {};
     this.useCases.forEach(useCase => {
       if (useCase.status === 'RUNNING' && useCase.testStartedAt) {
@@ -54,12 +54,8 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
     
     this.useCaseService.getAllUseCases().subscribe({
       next: (useCases) => {
-        // Restore testStartedAt for running tests that were started in this session
-        useCases.forEach(useCase => {
-          if (useCase.status === 'RUNNING' && runningTestTimestamps[useCase.id]) {
-            useCase.testStartedAt = runningTestTimestamps[useCase.id];
-          }
-        });
+        // Don't override testStartedAt from backend - use the authoritative value from server
+        // The backend now properly sets testStartedAt when starting new tests
         
         // Handle tests that were running but are now completed
         this.useCases.forEach(oldUseCase => {
