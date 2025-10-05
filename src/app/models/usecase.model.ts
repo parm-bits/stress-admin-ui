@@ -14,6 +14,8 @@ export interface UseCase {
   userCount?: number;
   priority?: number;
   requiresCsv?: boolean;
+  threadGroupConfig?: string;
+  serverConfig?: string;
 }
 
 export interface TestSession {

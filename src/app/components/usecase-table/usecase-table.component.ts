@@ -374,15 +374,44 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
 
   downloadJmx(useCase: UseCase): void {
     this.useCaseService.downloadJmx(useCase.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = useCase.jmxPath.split('/').pop() || 'test.jmx';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+      next: async (blob) => {
+        try {
+          // Convert blob to text to modify the JMX content
+          const jmxText = await blob.text();
+          
+          // Apply thread group configurations if they exist
+          let modifiedJmxText = jmxText;
+          if (useCase.threadGroupConfig) {
+            try {
+              const threadGroupConfig = JSON.parse(useCase.threadGroupConfig);
+              modifiedJmxText = this.applyThreadGroupConfigToJmx(jmxText, threadGroupConfig);
+            } catch (error) {
+              console.warn('Could not parse threadGroupConfig, using original JMX:', error);
+            }
+          }
+          
+          // Create new blob with modified content
+          const modifiedBlob = new Blob([modifiedJmxText], { type: 'application/xml' });
+          const url = window.URL.createObjectURL(modifiedBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = useCase.jmxPath.split('/').pop() || 'test.jmx';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Error processing JMX file:', error);
+          // Fallback to original download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = useCase.jmxPath.split('/').pop() || 'test.jmx';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        }
       },
       error: (error) => {
         console.error('Error downloading JMX file:', error);
@@ -477,6 +506,100 @@ export class UsecaseTableComponent implements OnInit, OnDestroy {
     }
     
     return this.formatDuration(durationSeconds);
+  }
+
+  /**
+   * Applies thread group configuration to JMX content
+   */
+  private applyThreadGroupConfigToJmx(jmxContent: string, threadGroupConfig: any): string {
+    let modifiedContent = jmxContent;
+    
+    console.log('Applying thread group config to JMX:', threadGroupConfig);
+    
+    // Update number of threads
+    modifiedContent = modifiedContent.replace(
+      /<intProp name="ThreadGroup\.num_threads">\d+<\/intProp>/g,
+      `<intProp name="ThreadGroup.num_threads">${threadGroupConfig.numberOfThreads || 1}</intProp>`
+    );
+    
+    // Update ramp-up period
+    modifiedContent = modifiedContent.replace(
+      /<intProp name="ThreadGroup\.ramp_time">\d+<\/intProp>/g,
+      `<intProp name="ThreadGroup.ramp_time">${threadGroupConfig.rampUpPeriod || 1}</intProp>`
+    );
+    
+    // Update loop count and infinite loop setting
+    if (threadGroupConfig.infiniteLoop) {
+      modifiedContent = modifiedContent.replace(
+        /<stringProp name="LoopController\.loops">-?\d+<\/stringProp>/g,
+        `<stringProp name="LoopController.loops">-1</stringProp>`
+      );
+      // Also update the continue_forever property
+      modifiedContent = modifiedContent.replace(
+        /<boolProp name="LoopController\.continue_forever">(true|false)<\/boolProp>/g,
+        `<boolProp name="LoopController.continue_forever">true</boolProp>`
+      );
+    } else {
+      modifiedContent = modifiedContent.replace(
+        /<stringProp name="LoopController\.loops">-?\d+<\/stringProp>/g,
+        `<stringProp name="LoopController.loops">${threadGroupConfig.loopCount || 1}</stringProp>`
+      );
+      // Set continue_forever to false for finite loops
+      modifiedContent = modifiedContent.replace(
+        /<boolProp name="LoopController\.continue_forever">(true|false)<\/boolProp>/g,
+        `<boolProp name="LoopController.continue_forever">false</boolProp>`
+      );
+    }
+    
+    // Update same user on each iteration
+    modifiedContent = modifiedContent.replace(
+      /<boolProp name="ThreadGroup\.same_user_on_next_iteration">(true|false)<\/boolProp>/g,
+      `<boolProp name="ThreadGroup.same_user_on_next_iteration">${threadGroupConfig.sameUserOnEachIteration !== false}</boolProp>`
+    );
+    
+    // Update specify thread lifetime (scheduler)
+    modifiedContent = modifiedContent.replace(
+      /<boolProp name="ThreadGroup\.scheduler">(true|false)<\/boolProp>/g,
+      `<boolProp name="ThreadGroup.scheduler">${threadGroupConfig.specifyThreadLifetime || false}</boolProp>`
+    );
+    
+    // Update duration only if scheduler is enabled
+    if (threadGroupConfig.specifyThreadLifetime) {
+      const durationPattern = /<longProp name="ThreadGroup\.duration">\d+<\/longProp>/g;
+      if (modifiedContent.match(durationPattern)) {
+        modifiedContent = modifiedContent.replace(
+          durationPattern,
+          `<longProp name="ThreadGroup.duration">${threadGroupConfig.duration || 60}</longProp>`
+        );
+      }
+    }
+    
+    // Update action after sampler error
+    modifiedContent = modifiedContent.replace(
+      /<stringProp name="ThreadGroup\.on_sample_error">[^<]+<\/stringProp>/g,
+      `<stringProp name="ThreadGroup.on_sample_error">${(threadGroupConfig.actionAfterSamplerError || 'Continue').toLowerCase()}</stringProp>`
+    );
+    
+    // Update delay thread creation if it exists
+    const delayStartPattern = /<boolProp name="ThreadGroup\.delayedStart">(true|false)<\/boolProp>/g;
+    if (modifiedContent.match(delayStartPattern)) {
+      modifiedContent = modifiedContent.replace(
+        delayStartPattern,
+        `<boolProp name="ThreadGroup.delayedStart">${threadGroupConfig.delayThreadCreation || false}</boolProp>`
+      );
+    }
+    
+    // Update startup delay if it exists
+    const startupDelayPattern = /<stringProp name="ThreadGroup\.delay">\d+<\/stringProp>/g;
+    if (modifiedContent.match(startupDelayPattern)) {
+      modifiedContent = modifiedContent.replace(
+        startupDelayPattern,
+        `<stringProp name="ThreadGroup.delay">${threadGroupConfig.startupDelay || 0}</stringProp>`
+      );
+    }
+    
+    console.log('Thread group configuration applied to JMX');
+    return modifiedContent;
   }
 
 }
