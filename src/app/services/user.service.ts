@@ -16,7 +16,6 @@ export interface User {
 
 export interface CreateUserRequest {
   username: string;
-  email: string;
   password: string;
   fullName: string;
   role: string;

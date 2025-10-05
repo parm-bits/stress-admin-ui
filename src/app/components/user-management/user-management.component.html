@@ -1,28 +1,60 @@
 <div class="user-management-container">
-  <div class="header">
-    <h1>User Management</h1>
-    <button 
-      class="btn btn-primary" 
-      (click)="toggleCreateForm()"
-      *ngIf="isAdmin()"
-    >
-      {{ showCreateForm ? 'Cancel' : 'Create User' }}
-    </button>
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="page-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45768C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 3.13C7.13959 3.35031 6.37696 3.85071 5.83236 4.55232C5.28775 5.25392 4.99219 6.11683 4.99219 7.005C4.99219 7.89317 5.28775 8.75608 5.83236 9.45768C6.37696 10.1593 7.13959 10.6597 8 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="page-title">
+          <h1>User Management</h1>
+          <p>Manage system users and permissions</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button 
+          class="btn btn-primary btn-create" 
+          (click)="toggleCreateForm()"
+          *ngIf="isAdmin()"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {{ showCreateForm ? 'Cancel' : 'Create User' }}
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- Create User Form -->
-  <div class="create-user-form" *ngIf="showCreateForm && isAdmin()">
-    <h3>Create New User</h3>
-    <form [formGroup]="createUserForm" (ngSubmit)="onCreateUser()">
-      <div class="form-row">
+  <!-- Create User Card -->
+  <div class="create-user-card" *ngIf="showCreateForm && isAdmin()">
+    <div class="card-header">
+      <h3>Create New User</h3>
+      <p>Add a new user to the system</p>
+    </div>
+    
+    <form [formGroup]="createUserForm" (ngSubmit)="onCreateUser()" class="create-form">
+      <div class="form-grid">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="username" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Username
+          </label>
           <input 
             type="text" 
             id="username" 
             formControlName="username"
-            class="form-control"
+            class="form-input"
             [class.error]="createUserForm.get('username')?.invalid && createUserForm.get('username')?.touched"
+            placeholder="Enter username"
           />
           <div class="error-message" *ngIf="createUserForm.get('username')?.invalid && createUserForm.get('username')?.touched">
             <span *ngIf="createUserForm.get('username')?.errors?.['required']">Username is required</span>
@@ -31,30 +63,20 @@
         </div>
 
         <div class="form-group">
-          <label for="email">Email</label>
-          <input 
-            type="email" 
-            id="email" 
-            formControlName="email"
-            class="form-control"
-            [class.error]="createUserForm.get('email')?.invalid && createUserForm.get('email')?.touched"
-          />
-          <div class="error-message" *ngIf="createUserForm.get('email')?.invalid && createUserForm.get('email')?.touched">
-            <span *ngIf="createUserForm.get('email')?.errors?.['required']">Email is required</span>
-            <span *ngIf="createUserForm.get('email')?.errors?.['email']">Please enter a valid email</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="fullName">Full Name</label>
+          <label for="fullName" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15C10.9391 15 9.92172 15.4214 9.17157 16.1716C8.42143 16.9217 8 17.9391 8 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Full Name
+          </label>
           <input 
             type="text" 
             id="fullName" 
             formControlName="fullName"
-            class="form-control"
+            class="form-input"
             [class.error]="createUserForm.get('fullName')?.invalid && createUserForm.get('fullName')?.touched"
+            placeholder="Enter full name"
           />
           <div class="error-message" *ngIf="createUserForm.get('fullName')?.invalid && createUserForm.get('fullName')?.touched">
             <span *ngIf="createUserForm.get('fullName')?.errors?.['required']">Full name is required</span>
@@ -63,30 +85,45 @@
         </div>
 
         <div class="form-group">
-          <label for="role">Role</label>
+          <label for="password" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="16" r="1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Password
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            class="form-input"
+            [class.error]="createUserForm.get('password')?.invalid && createUserForm.get('password')?.touched"
+            placeholder="Enter password"
+          />
+          <div class="error-message" *ngIf="createUserForm.get('password')?.invalid && createUserForm.get('password')?.touched">
+            <span *ngIf="createUserForm.get('password')?.errors?.['required']">Password is required</span>
+            <span *ngIf="createUserForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="role" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Role
+          </label>
           <select 
             id="role" 
             formControlName="role"
-            class="form-control"
+            class="form-select"
           >
             <option value="USER">User</option>
             <option value="ADMIN">Admin</option>
           </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          formControlName="password"
-          class="form-control"
-          [class.error]="createUserForm.get('password')?.invalid && createUserForm.get('password')?.touched"
-        />
-        <div class="error-message" *ngIf="createUserForm.get('password')?.invalid && createUserForm.get('password')?.touched">
-          <span *ngIf="createUserForm.get('password')?.errors?.['required']">Password is required</span>
-          <span *ngIf="createUserForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
         </div>
       </div>
 
@@ -96,6 +133,10 @@
           class="btn btn-success"
           [disabled]="createUserForm.invalid || isCreatingUser"
         >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" *ngIf="!isCreatingUser">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="spinner" *ngIf="isCreatingUser"></div>
           {{ isCreatingUser ? 'Creating...' : 'Create User' }}
         </button>
         <button 
@@ -109,27 +150,36 @@
     </form>
   </div>
 
-  <!-- Users Table -->
-  <div class="users-table">
-    <div class="table-header">
-      <h3>Users</h3>
-      <button class="btn btn-outline-primary" (click)="loadUsers()">
-        Refresh
-      </button>
+  <!-- Users Table Card -->
+  <div class="users-card">
+    <div class="card-header">
+      <div class="header-left">
+        <h3>System Users</h3>
+        <p>{{ users.length }} user{{ users.length !== 1 ? 's' : '' }} in the system</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline-primary btn-refresh" (click)="loadUsers()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M23 4V10H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20.49 15C19.9828 16.9509 18.6839 18.6839 16.732 20.192C14.7801 21.7001 12.2851 21.9004 10.1736 20.7607C8.06204 19.621 6.55351 17.2309 6.05351 14.5C5.55351 11.7691 6.12304 8.93091 7.55351 6.5C8.98398 4.06909 11.123 2.5 13.5 2.5C15.877 2.5 18.016 4.06909 19.4465 6.5L23 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
     </div>
 
-    <div class="loading" *ngIf="isLoading">
-      <div class="spinner"></div>
-      <span>Loading users...</span>
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="loading-content">
+        <div class="spinner large"></div>
+        <p>Loading users...</p>
+      </div>
     </div>
 
-    <div class="table-responsive" *ngIf="!isLoading">
-      <table class="table">
+    <div class="table-container" *ngIf="!isLoading">
+      <table class="users-table">
         <thead>
           <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Full Name</th>
+            <th>User</th>
             <th>Role</th>
             <th>Status</th>
             <th>Created</th>
@@ -138,36 +188,56 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of users">
-            <td>{{ user.username }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.fullName }}</td>
+          <tr *ngFor="let user of users" class="user-row">
+            <td class="user-info">
+              <div class="user-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="user-details">
+                <div class="user-name">{{ user.fullName }}</div>
+                <div class="user-username">@{{ user.username }}</div>
+              </div>
+            </td>
             <td>
-              <span class="badge" [class.badge-admin]="user.role === 'ADMIN'" [class.badge-user]="user.role === 'USER'">
+              <span class="role-badge" [class.admin]="user.role === 'ADMIN'" [class.user]="user.role === 'USER'">
                 {{ user.role }}
               </span>
             </td>
             <td>
-              <span class="badge" [class.badge-active]="user.status === 'ACTIVE'" [class.badge-inactive]="user.status === 'INACTIVE'">
+              <span class="status-badge" [class.active]="user.status === 'ACTIVE'" [class.inactive]="user.status === 'INACTIVE'">
+                <span class="status-dot"></span>
                 {{ user.status }}
               </span>
             </td>
-            <td>{{ user.createdAt | date:'short' }}</td>
-            <td>{{ user.lastLoginAt ? (user.lastLoginAt | date:'short') : 'Never' }}</td>
-            <td *ngIf="isAdmin()">
-              <button 
-                class="btn btn-sm btn-outline-primary"
-                (click)="onEditUser(user)"
-                [disabled]="editingUser?.id === user.id"
-              >
-                Edit
-              </button>
-              <button 
-                class="btn btn-sm btn-outline-danger"
-                (click)="onDeleteUser(user)"
-              >
-                Delete
-              </button>
+            <td class="date-cell">{{ user.createdAt | date:'MMM d, y' }}</td>
+            <td class="date-cell">{{ user.lastLoginAt ? (user.lastLoginAt | date:'MMM d, y') : 'Never' }}</td>
+            <td *ngIf="isAdmin()" class="actions-cell">
+              <div class="action-buttons">
+                <button 
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="onEditUser(user)"
+                  [disabled]="editingUser?.id === user.id"
+                  title="Edit User"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 2.5C18.8978 2.10218 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10218 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10218 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button 
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="onDeleteUser(user)"
+                  title="Delete User"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -176,47 +246,38 @@
   </div>
 
   <!-- Edit User Modal -->
-  <div class="edit-user-modal" *ngIf="editingUser">
-    <div class="modal-content">
+  <div class="modal-overlay" *ngIf="editingUser" (click)="cancelEdit()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Edit User: {{ editingUser.username }}</h3>
-        <button class="btn-close" (click)="cancelEdit()">&times;</button>
+        <button class="btn-close" (click)="cancelEdit()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
       
       <form [formGroup]="editUserForm" (ngSubmit)="onUpdateUser()">
         <div class="modal-body">
-          <div class="form-row">
+          <div class="form-grid">
             <div class="form-group">
               <label for="edit-username">Username</label>
               <input 
                 type="text" 
                 id="edit-username" 
                 formControlName="username"
-                class="form-control"
+                class="form-input"
                 [class.error]="editUserForm.get('username')?.invalid && editUserForm.get('username')?.touched"
               />
             </div>
 
-            <div class="form-group">
-              <label for="edit-email">Email</label>
-              <input 
-                type="email" 
-                id="edit-email" 
-                formControlName="email"
-                class="form-control"
-                [class.error]="editUserForm.get('email')?.invalid && editUserForm.get('email')?.touched"
-              />
-            </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
               <label for="edit-fullName">Full Name</label>
               <input 
                 type="text" 
                 id="edit-fullName" 
                 formControlName="fullName"
-                class="form-control"
+                class="form-input"
                 [class.error]="editUserForm.get('fullName')?.invalid && editUserForm.get('fullName')?.touched"
               />
             </div>
@@ -226,24 +287,11 @@
               <select 
                 id="edit-role" 
                 formControlName="role"
-                class="form-control"
+                class="form-select"
               >
                 <option value="USER">User</option>
                 <option value="ADMIN">Admin</option>
               </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="edit-password">New Password (leave blank to keep current)</label>
-              <input 
-                type="password" 
-                id="edit-password" 
-                formControlName="password"
-                class="form-control"
-                placeholder="Enter new password"
-              />
             </div>
 
             <div class="form-group">
@@ -251,11 +299,22 @@
               <select 
                 id="edit-status" 
                 formControlName="status"
-                class="form-control"
+                class="form-select"
               >
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
               </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="edit-password">New Password (leave blank to keep current)</label>
+              <input 
+                type="password" 
+                id="edit-password" 
+                formControlName="password"
+                class="form-input"
+                placeholder="Enter new password"
+              />
             </div>
           </div>
         </div>
